@@ -1,0 +1,60 @@
+	AREA    |mpeg$$misccode|, CODE
+;, READONLY
+
+	EXPORT	install_timer1
+install_timer1
+        stmfd	sp!, {r4-r10, lr}       ; preserve some registers
+	mov	r0, #6
+	adr	r1, ioctimer1
+	adr	r2, timer1_counter
+	mov	r3, #0
+	mov	r4, #0
+	str	r4, [r2]		; reset timer counter
+	swi	&4b			; OS_ClaimDeviceVector
+	movvs	r0, #1
+        ldmvsfd	sp!, {r4-r10, pc}^
+	mov	r5, #2000		; delay for 1 ms
+	mov	r3, #&03200000
+	swi	&16			; OS_EnterOS
+	ldrb	r0,[r3, #&18]		; enable timer1 int
+	orr	r0, r0, #1<<6		; timer1 mask bit
+	strb	r0,[r3, #&18]		;
+        strb	r5,[r3, #&50]		; T1LOW
+	mov	r5,r5,lsr #8
+	strb	r5,[r3, #&54]		; T1HIGH
+;	strb	r5,[r3, #&58]		; T1GO
+	teqp	pc,#0			; back to USERMODE26
+	mov	r0,r0			;
+	mov	r0,#0
+        ldmfd   sp!, {r4-r10, pc}^
+
+	EXPORT	uninstall_timer1
+uninstall_timer1
+        stmfd	sp!, {r4-r10, lr}       ; preserve some registers
+	mov	r0, #6
+	adr	r1, ioctimer1
+	adr	r2, timer1_counter
+	mov	r3, #0
+	mov	r4, #0
+	swi	&4c			; OS_ReleaseDeviceVector
+        ldmfd	sp!, {r4-r10, pc}^
+
+ioctimer1
+	stmfd	sp!,{lr}
+	mov	r0, #1<<6
+	strb	r0, [r3,#&14]
+	ldr	r0,[r12]
+	add	r0,r0,#1
+	str	r0,[r12]
+	ldmfd	sp!,{pc}
+
+	EXPORT	read_timer1
+read_timer1
+	ldr	r0,timer1_counter
+	mov	pc, lr
+
+;	AREA    |mpeg$$miscdata|, DATA
+	EXPORT	timer1_counter
+timer1_counter
+	DCD	0
+	END

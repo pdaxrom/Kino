@@ -1,0 +1,69 @@
+#define REALTIME
+
+#define DISP_WIDTH      384
+#define DISP_HEIGHT     288
+#define DISP_BPP        15
+
+/* include/config.h.  Generated automatically by configure.  */
+/* include/config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define to empty if the keyword does not work.  */
+/* #undef const */
+
+/* Define as __inline if that's what the C compiler calls it.  */
+/* #undef inline */
+
+/* Define as the return type of signal handlers (int or void).  */
+#define RETSIGTYPE void
+
+/* Define to `unsigned' if <sys/types.h> doesn't define.  */
+/* #undef size_t */
+
+/* Define if you have the ANSI C header files.  */
+#define STDC_HEADERS 1
+
+/* Define if your processor stores words with the most significant
+   byte first (like Motorola and SPARC, unlike Intel and VAX).  */
+/* #undef WORDS_BIGENDIAN */
+
+/* Define if the X Window System is missing or not being used.  */
+#define X_DISPLAY_MISSING 1
+
+/* Define if you have the memalign function.  */
+/* #undef HAVE_MEMALIGN */
+
+/* Define if you have the <getopt.h> header file.  */
+#define HAVE_GETOPT_H 1
+
+/* Name of package */
+#define PACKAGE "mpeg2dec"
+
+/* Version number of package */
+#define VERSION "0.2.0"
+
+/* x86 architecture */
+//#define ARCH_X86
+
+/* libmpeg2 mediaLib support */
+/* #undef LIBMPEG2_MLIB */
+
+/* libvo X11 support */
+/* #undef LIBVO_X11 */
+
+/* libvo Xv support */
+/* #undef LIBVO_XV */
+
+/* libvo mediaLib support */
+/* #undef LIBVO_MLIB */
+
+/* libvo SDL support */
+/* #undef LIBVO_SDL */
+
+/* libvo MGA support */
+/* #undef LIBVO_MGA */
+
+/* maximum supported data alignment */
+//#define ATTRIBUTE_ALIGNED_MAX 64
+
+#define inline
+

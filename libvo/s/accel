@@ -1,0 +1,40 @@
+	GET	OSLib:Hdr.OS
+
+        AREA    |libvo$$misccode|, CODE, READONLY
+
+	EXPORT	acorn_draw_frame
+
+acorn_draw_frame
+        MOV      ip,sp
+        STMDB    sp!,{a1,v1-v6,fp,ip,lr,pc}
+        SUB      fp,ip,#4
+        LDR      a2,[a1,#&18]
+        LDR      a3,[pc, #L0000bc-.-8]
+        LDR      v2,[a3,#0]
+        LDR      v1,[a1,#0]
+        LDR      v4,[a2,#&78]!
+        LDR      v3,[a2,#4]
+        LDR      a1,[pc, #L0000c0-.-8]
+        MOV      v5,#0
+        CMP      v3,#0
+        LDR      v6,[a1,#0]
+        LDMLEDB  fp,{v1-v6,fp,sp,pc}^
+|L000094.J4.acorn_draw_frame|
+        MOV      a3,v4
+        MOV      a2,v1
+        MOV      a1,v2
+        BL       memcpy
+        ADD      v2,v2,v6
+        ADD      v1,v1,v4
+        ADD      v5,v5,#1
+        CMP      v5,v3
+        BLT      |L000094.J4.acorn_draw_frame|
+        LDMDB    fp,{v1-v6,fp,sp,pc}^
+L0000bc
+        IMPORT  paint_startaddr
+        DCD     paint_startaddr
+L0000c0
+        IMPORT  screen_bytesperrow
+        DCD     screen_bytesperrow
+
+	END

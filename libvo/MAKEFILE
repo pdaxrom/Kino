@@ -1,0 +1,32 @@
+# Project:    o.libvo
+
+
+# Toolflags:
+AS           = objasm
+CC           = cc
+CCflags      = -c -Otime -depend !Depend -throwback -I@.^.player -IC: -APCS 3/32bit/fpe3
+ASFlags      = -APCS 3/32bit
+Linkflags    = -o $@
+
+Files        = o.video_out o.video_out_null o.video_out_acorn o.video_out_pgm o.yuv2rgb o.custom
+# o.accel
+Libs         = C:o.Stubs OSLib:o.OSLib32
+
+# Final targets:
+o.libvo:      $(Files) $(Libs)
+              libfile -c o.libvo $(Files)
+
+#Rule patterns:
+VPATH        = @ @.^
+.SUFFIXES:    .o .c
+.c.o:;        $(CC) $(CCFlags) -o $@ $<
+.s.o:;        $(AS) $(ASFlags) -o $@ $<
+
+# Dynamic dependencies:
+#o.accel: s.accel
+o.video_out: c.video_out ^.player.h.config ^.player.h.inttypes ^.player.h.video_out h.video_out_internal
+o.video_out_null: c.video_out_null ^.player.h.config ^.player.h.inttypes ^.player.h.video_out h.video_out_internal h.yuv2rgb
+o.video_out_pgm: c.video_out_pgm ^.player.h.config ^.player.h.inttypes ^.player.h.video_out h.video_out_internal
+o.custom: c.custom ^.player.h.config C:h.kernel C:h.swis C:h.kernel
+o.video_out_acorn: c.video_out_acorn ^.player.h.config ^.player.h.inttypes ^.player.h.video_out h.video_out_internal h.custom h.yuv2rgb
+o.yuv2rgb: c.yuv2rgb ^.player.h.config ^.player.h.inttypes h.yuv2rgb ^.player.h.mm_accel ^.player.h.video_out h.video_out_internal

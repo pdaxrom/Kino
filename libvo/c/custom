@@ -1,0 +1,276 @@
+/*
+ * c.custom
+ *
+ */
+
+/*  Routines to provide replacements for those on UNIX systems/libraries */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "config.h"
+
+#include "kernel.h"
+#include "swis.h"
+
+//#include "video.h"
+//#include "dither.h"
+
+//#include "misc.h"
+
+/* Global vars set at command line */
+
+//BOOL   paint_big = FALSE;
+int paint_big = 0;
+
+int    paint_at_x = -1;
+int    paint_at_y = -1;
+
+/* Global vars for within this module */
+
+int  screen_start;
+int  screen_bytesperrow;
+
+int  paint_startaddr;            /* screen address at which frame is painted */
+
+int mode_save_block[256];
+
+void SetGreyPal(void)
+{
+  unsigned int i;
+  unsigned int coltab[256];
+  _kernel_swi_regs r;
+
+  /* Set up a colour table */
+  for(i = 0; i<256; i++){
+    coltab[i] =  (i << 8) + /* Red */
+                 (i << 16) + /* Green */
+                 (i << 24); /* Blue */
+  }
+  r.r[0]=-1;
+  r.r[1]=-1;
+  r.r[2]=(int)coltab;
+  r.r[3]=0;
+  r.r[4]=0;
+  r.r[5]=0;
+  _kernel_swi(ColourTrans_WritePalette, &r, &r);
+}
+
+/*
+ *--------------------------------------------------------------
+ *
+ * ReadSysClock
+ *
+ * Returns double = system clock in secs
+ *
+ *--------------------------------------------------------------
+ */
+
+double  ReadSysClock(void)
+{
+   _kernel_swi_regs   r;
+   double             t;
+
+
+   _kernel_swi(OS_ReadMonotonicTime, &r, &r);
+   t = r.r[0] / 100.0;
+
+   return t;
+}
+
+/*
+ *--------------------------------------------------------------
+ *
+ * ReadVduVar
+ *
+ * Reads a vdu variable (for the current mode)
+ *
+ *--------------------------------------------------------------
+ */
+
+int  ReadVduVar(int var)
+{
+   int                blk[4];
+   _kernel_swi_regs   r;
+
+   blk[0] = var;
+   blk[1] = -1;
+
+   r.r[0] = (int)blk;
+   r.r[1] = (int)(blk + 2);
+   _kernel_swi(OS_ReadVduVariables, &r, &r);
+
+   return blk[2];
+}
+
+void SetVScreen(void)
+{
+   _kernel_swi_regs   r;
+   int i;
+   int *mode_save_temp;
+   int blk[10];
+  /* store desktop mode */
+   r.r[0]=1;
+   _kernel_swi(OS_ScreenMode, &r, &r);
+   mode_save_temp=(int *)r.r[1];
+
+   i = 0;
+   while((i < 255) && (mode_save_temp[i] != -1)){
+     mode_save_block[i] = mode_save_temp[i];
+     i++;
+   }
+   mode_save_block[i] = -1;
+
+  /* Set up screen mode */
+   blk[0]=1;
+   blk[1]=DISP_WIDTH; //320;
+   blk[2]=DISP_HEIGHT; //256;
+   blk[3]=4; //3;
+   blk[4]=-1;
+   blk[5]=0;
+   blk[6]=1<<7;
+   blk[7]=3;
+   blk[8]=255;
+   blk[9]=-1;
+   r.r[0]=0;
+   r.r[1]=(int)blk;
+   _kernel_swi(OS_ScreenMode, &r, &r);
+
+//   SetGreyPal();
+}
+
+void RestoreDesktop(void)
+{
+  _kernel_swi_regs   r;
+
+  /* Re enter saved mode */
+  r.r[0]=0;
+  r.r[1]=(int)mode_save_block;
+  _kernel_swi(OS_ScreenMode, &r, &r);
+
+  /* Redraw screen */
+  r.r[0]=-1;
+  r.r[1]=0;
+  r.r[2]=0;
+  r.r[3]=0x7fffffff;
+  r.r[4]=0x7fffffff;
+  _kernel_swi(Wimp_ForceRedraw, &r, &r);
+  /* Re-enable pointer */
+  system("pointer 1"); // FUCK!
+}
+
+/*
+ *--------------------------------------------------------------
+ *
+ * InitAcornDisplay
+ *
+ * Initialise stuff for dithering
+ *
+ *--------------------------------------------------------------
+ */
+
+void  InitAcornDisplay(int width, int height)
+{
+   int     ncols, xeig, yeig;
+   int     screen_rows;
+   int     screen_bpp;
+   int     paint_w, paint_h;
+   int     paint_x, paint_y;
+
+   SetVScreen();
+
+//   printf("width=%d\nheight=%d\n", width, height);
+
+   ncols = ReadVduVar(3);
+   xeig  = ReadVduVar(4);
+   yeig  = ReadVduVar(5);
+
+   screen_bytesperrow = ReadVduVar(6);         /* screen width in bytes */
+   screen_start = ReadVduVar(149);
+
+   screen_rows = ReadVduVar(12)+1;
+   screen_bpp  = 1 << ReadVduVar(9);
+
+//   printf("screen_bytesperrow=%d\nscreen_rows=%d\nscreen_bpp=%d\n",
+//           screen_bytesperrow, screen_rows, screen_bpp);
+
+//   printf("xeig=%d\nyeig=%d\n",xeig, yeig);
+
+   if (width > DISP_WIDTH) width = DISP_WIDTH;
+   if (height > DISP_HEIGHT) height = DISP_HEIGHT;
+
+   paint_w = width;// * 16;
+   paint_h = height;// * 16;
+
+//   printf("ncols=%d\n", ncols);
+
+   switch(ncols)
+   {
+      case 255:
+      case 63:
+/*
+         if (xeig == yeig)
+         {
+            if ((xeig == 1) || paint_big)
+            {
+               paint_w *= 2;
+               paint_h *= 2;
+            }
+            else
+            {
+            }
+         }
+         else
+         {
+            paint_w *= 2;
+         }
+*/
+         break;
+
+      /*----------*/
+
+      case 65535:
+
+         break;
+
+      /*----------*/
+
+      default:
+         printf("Sorry, MPEG player does not support this screen mode at present.\n");
+         exit(1);
+
+   }
+
+
+   /* Work out (default) position to paint on screen (in bytes x rows)*/
+   paint_w = (paint_w * screen_bpp)/8;      /* convert width to bytes */
+
+   paint_x = (screen_bytesperrow - paint_w) / 2;
+   paint_y = (screen_rows - paint_h) / 2;
+
+
+   /* If a position was given in command line, then use that */
+   if ((paint_at_x != -1) && (paint_at_y != -1))
+   {
+      paint_x = (paint_at_x >> xeig) * screen_bpp / 8;
+      paint_y = screen_rows - (paint_at_y >> yeig) - paint_h;
+
+      /* make sure frame is completely on screen */
+      if ((paint_x + paint_w) > screen_bytesperrow)
+         paint_x = screen_bytesperrow - paint_w;
+      if ((paint_y + paint_h) > screen_rows)
+         paint_y = screen_rows - paint_h;
+      if (paint_x < 0)
+         paint_x = 0;
+      if (paint_y < 0)
+         paint_y = 0;
+   }
+
+
+   /* Adjust paint start address for x,y offset */
+
+   paint_startaddr = screen_start + (paint_y * screen_bytesperrow + paint_x);
+
+//   printf("paint_x=%d\npaint_y=%d\n", paint_x, paint_y);
+}

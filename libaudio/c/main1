@@ -1,0 +1,37 @@
+
+#include "mpg123.h"
+#include "mpglib.h"
+
+char buf[16384];
+struct mpstr mp;
+
+int main(int argc,char *argv[])
+{
+	int size;
+	char out[8192];
+	int len,ret;
+	FILE *inf, *outf;
+
+        inf = fopen(argv[1], "rb");
+        outf = fopen(argv[2], "wb");
+
+	InitMP3(&mp, 4);
+
+	while(1) {
+		len = fread(buf,1, 16384, inf);
+		if(len <= 0)
+			break;
+		ret = decodeMP3(&mp,buf,len,out,8192,&size);
+		while(ret == MP3_OK) {
+			fwrite(out, 1, size, outf);
+			ret = decodeMP3(&mp,NULL,0,out,8192,&size);
+		}
+	}
+
+  fclose(inf);
+  fclose(outf);
+
+  return 0;
+
+}
+

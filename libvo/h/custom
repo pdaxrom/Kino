@@ -1,0 +1,48 @@
+/*
+ * h.custom
+ *
+ */
+
+/*  Routines to provide replacements for those on UNIX systems/libraries */
+
+
+
+#define __ACORN__
+
+
+
+//extern int    paint_big;    /* actually type BOOL */
+
+extern int    paint_at_x;
+extern int    paint_at_y;
+
+extern int paint_startaddr;            /* screen address at which frame is painted */
+extern int  screen_bytesperrow;
+
+/*
+ *--------------------------------------------------------------
+ *
+ * ReadSysClock
+ *
+ * Returns double = system clock in secs
+ *
+ *--------------------------------------------------------------
+ */
+
+extern double  ReadSysClock(void);
+
+
+
+/*
+ *--------------------------------------------------------------
+ *
+ * InitAcornDisplay
+ *
+ * Initialise stuff for dithering
+ *
+ *--------------------------------------------------------------
+ */
+
+extern void  InitAcornDisplay(int width, int height);
+
+extern void RestoreDesktop(void);

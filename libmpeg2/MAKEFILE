@@ -1,0 +1,31 @@
+# Project:    o.libmpeg2
+
+
+# Toolflags:
+AS           = objasm
+CC           = cc
+CCflags      = -c -Otime -depend !Depend -throwback -I@.^.player -IC: -APCS 3/32bit/fpe3
+ASflags      = -throwback -APCS 3/32bit
+Linkflags    = -o $@
+
+Files        = o.decode o.header o.idct o.motion_comp o.slice o.stats o.timer1
+Libs         = C:o.Stubs OSLib:o.OSLib32
+
+# Final targets:
+o.libmpeg2:      $(Files) $(Libs)
+              libfile -c o.libmpeg2 $(Files)
+
+#Rule patterns:
+VPATH        = @ @.^
+.SUFFIXES:    .o .c
+.c.o:;        $(CC) $(CCFlags) -o $@ $<
+.s.o:;        $(AS) $(ASFlags) -o $@ $<
+
+# Dynamic dependencies:
+o.slice: c.slice
+o.stats: c.stats
+o.timer1: s.timer1
+o.header: c.header ^.player.h.config ^.player.h.inttypes h.mpeg2_internal ^.player.h.attributes
+o.motion_comp: c.motion_comp ^.player.h.config ^.player.h.inttypes h.mpeg2_internal ^.player.h.mm_accel
+o.decode: c.decode ^.player.h.config ^.player.h.inttypes ^.player.h.video_out ^.player.h.mpeg2 h.mpeg2_internal ^.player.h.mm_accel ^.player.h.attributes ^.player.h.timer1
+o.idct: c.idct ^.player.h.config ^.player.h.inttypes h.mpeg2_internal ^.player.h.mm_accel

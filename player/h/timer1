@@ -1,0 +1,4 @@
+extern int install_timer1(void);
+extern int uninstall_timer1(void);
+extern int read_timer1(void);
+extern int timer1_counter;

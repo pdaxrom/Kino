@@ -1,0 +1,3 @@
+Set Kino$Dir <Obey$Dir>
+IconSprites <Kino$Dir>.!Sprites
+Set Alias$@RunType_BF8 Run <Kino$Dir>.kino -S -o acorn %*0

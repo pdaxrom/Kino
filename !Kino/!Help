@@ -1,0 +1,16 @@
+MPEG video player with audio support.
+
+Currently supported:
+System stream with MPEG1 and MPEG2 elementary
+videostream, MPEG 1 Layer 2 and Layer 3 elementary
+audiostream.
+Elementary videostream also playing.
+
+Knowledge bugs:
+If audiostream have frequensy 32KHz or 48KHz playing
+output sound frequensy little high then need.
+Slow speed playing for big resolution video.
+
+New version look at http://www.eqrd.net
+
+Some nice video can be downloading from http://www.pocketmovies.com
